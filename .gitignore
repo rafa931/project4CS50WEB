@@ -1,0 +1,14 @@
+# venv 
+venv/
+
+# py
+
+__pycache__/
+
+# db, log etc
+*.db
+*.log
+.env
+.vscode
+dist/
+build/
