@@ -7,8 +7,10 @@ __pycache__/
 
 # db, log etc
 *.db
+db.sqlite3
 *.log
 .env
 .vscode
 dist/
 build/
+media/

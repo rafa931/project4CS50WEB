@@ -1,5 +1,53 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+<div class="main-container">
+
+    <div>
+        {% if user.is_authenticated %}
+        <form action="{% url 'index' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="">Title:</label>
+            <input name="title" id="title" type="text" required>
+
+            <label for="content">Content:</label>
+            <textarea name="content" id="content" required></textarea>
+
+            <label for="img">Image (Optional Beta)</label>
+            <input name="image" id="img" type="file">
+
+            <input type="submit">
+        </form>
+
+        {% if message %}
+        {{ message }}
+        {% endif %}
+
+        {% endif %}
+    </div>
+
+    <div>
+        {% for post in posts %}
+            <div style="margin-bottom: 20px;">
+                {{ post.title }}
+                {{ post.content }}
+
+                {% if post.image %}
+                <img src="{{ post.image.url }}" width="200px" alt="">
+                {% endif %}
+
+                {{ post.time_stamp }}
+
+                <button>Like  {{ post.like }}</button>
+            </div>
+
+        {% empty %}
+            <h4>No Posts yet.</h4>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
 {% endblock %}

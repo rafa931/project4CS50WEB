@@ -4,11 +4,36 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.method == "POST" and request.user.is_authenticated:
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        image = request.FILES.get("image")
+        # check for form fields are not empty
+        if not title or not content:
+            message = "The title or content of the post can't be empty, please fill the inputs"
+            return render(request, "network/index.html", {
+                "message": message
+            })
+
+        # create the post
+        post = Post(
+            user=request.user,
+            title=title,
+            content=content,
+            image=image
+        )
+        post.save()
+
+    # get request
+    posts = Post.objects.all().order_by('-time_stamp')
+
+    return render(request, "network/index.html",
+                  {"posts": posts
+                   })
 
 
 def login_view(request):
