@@ -41,3 +41,17 @@ class Like(models.Model):
     def __str__(self):
         return f"{self.user} - {self.post} - {self.value}"
     
+
+# follow model to kkeep track of follows
+class Follow(models.Model):
+    """
+    follower: User
+    following: User
+    """
+    follower = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="follower")
+    following = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="following")
+
+    def __str__(self):
+        return f"{self.follower} follows {self.following}"

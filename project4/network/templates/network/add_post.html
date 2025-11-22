@@ -1,0 +1,25 @@
+{% extends 'network/layout.html' %}
+{% load static %}
+
+{% block title %}Add Post{% endblock %}
+
+{% block body %}
+    <div class="add-post">
+        <form class="form-add-post" action="{% url 'add_post' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="post-title">Title</label>
+            <input id="post-title" type="text" name="title">
+            <label for="post-content">Content</label>
+            <textarea id="post-content" name="content"></textarea>  
+
+            <label for="post-image">Image (Optional)</label>
+            <input id="post-image" type="file" name="image" accept="image/*">
+            
+            <button id="submit-add" type="submit">Add Post</button>
+        </form>
+        {% if message %}
+            {{ mesasge }}
+        {% endif %}
+    </div>
+
+{% endblock %}
