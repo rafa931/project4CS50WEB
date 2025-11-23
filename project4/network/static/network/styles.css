@@ -110,6 +110,10 @@ li {
     gap: 5px;
 }
 
+#edit-modal {
+    width: 60%;
+}
+
 label {
     color: white;
     font-weight: bolder;
@@ -288,6 +292,23 @@ h3 {
     text-align: justify;
     border-radius: 10px;
     border: none;
+}
+
+.post-container-down {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.edit-btn {
+    background-color: orange;
+    border: none;
+    color: black;
+    border-radius: 5px;
+    padding: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1;
 }
 
 footer {

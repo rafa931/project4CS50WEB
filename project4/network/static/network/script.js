@@ -21,10 +21,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     })
 
+    // check is follow-form and editbtn exsit before adding event Listener
     const followForm = document.querySelector("#follow-form");
     if (followForm) {
         followForm.addEventListener("submit", function (event) {
             handleFollow(event);
+        })
+    }
+
+    const editBtn = document.querySelectorAll(".edit-btn");
+    if (editBtn) {
+        editBtn.forEach(btn => {
+            btn.addEventListener("click", function (event) {
+                editPost(event)
+            })
+
         })
     }
 
@@ -229,5 +240,189 @@ function updateFollowers(user_name) {
             followersField.textContent = `Followers: ${data.message.total}`
         })
         .catch(error => console.log(error));
+}
 
+
+function editPost(event) {
+    // prevent to tag a to fire
+    event.stopPropagation();
+    event.preventDefault();
+
+    const post_id = event.currentTarget.id;
+    post_content = getContent(post_id);
+
+    // backdrop to more style look
+    const backdrop = document.createElement("div");
+    backdrop.id = "modal-backdrop";
+    backdrop.style.position = "fixed";
+    backdrop.style.top = "0";
+    backdrop.style.left = "0";
+    backdrop.style.width = "100%";
+    backdrop.style.height = "100%";
+    backdrop.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    backdrop.style.zIndex = "999";
+    backdrop.onclick = function () {
+        divElement.remove();
+        backdrop.remove();
+    };
+
+    // open cartel and fill info
+    const divElement = document.createElement("div");
+
+    divElement.id = "edit-modal";
+    divElement.style.position = "fixed";
+    divElement.style.top = "50%";
+    divElement.style.left = "50%";
+    divElement.style.transform = "translate(-50%, -50%)";
+    divElement.style.backgroundColor = "#131212ff";
+    divElement.style.color = "black";
+    divElement.style.padding = "20px";
+    divElement.style.border = "1px solid #ccc";
+    divElement.style.borderRadius = "8px";
+    divElement.style.zIndex = "1000";
+
+    // close button
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "&times;";
+    closeBtn.style.position = "absolute";
+    closeBtn.style.top = "5px";
+    closeBtn.style.right = "10px";
+    closeBtn.style.border = "none";
+    closeBtn.style.background = "transparent";
+    closeBtn.style.fontSize = "24px";
+    closeBtn.style.cursor = "pointer";
+    closeBtn.style.color = "white";
+    closeBtn.onclick = function () {
+        backdrop.remove();
+        divElement.remove();
+    };
+
+    formElement = document.createElement("form");
+    formElement.action = "/edit_post";
+    formElement.method = "PUT";
+    formElement.classList.add("form-add-post");
+    formElement.id = "form-edit";
+
+
+    // input fields etc
+    h4Eelement = document.createElement("h3");
+    h4Eelement.style.color = "orange";
+    h4Eelement.textContent = "Edit Post";
+    h4Eelement.style.textAlign = "center";
+
+    labelTitle = document.createElement("label");
+    labelTitle.textContent = "Title:";
+    labelTitle.htmlFor = "post-title";
+
+    inputTitle = document.createElement("input");
+    inputTitle.id = "post-title";
+    inputTitle.value = post_content.title;
+
+    labelContent = document.createElement("label");
+    labelContent.textContent = "Content:";
+    labelContent.htmlFor = "post-content"
+
+    inputContent = document.createElement("textarea");
+    inputContent.id = "post-content";
+    inputContent.value = post_content.content;
+
+    labelFile = document.createElement("label");
+    labelFile.textContent = "Photo (Optional):";
+    labelFile.htmlFor = "post-image";
+
+    fileElemnt = document.createElement("input");
+    fileElemnt.type = "file";
+    fileElemnt.id = "post-image";
+
+    fileElemnt.id = "post-image";
+    fileElemnt.name = "image";
+    fileElemnt.accept = "image/*";
+
+    submitEleent = document.createElement("input");
+    submitEleent.id = "submit-add";
+    submitEleent.value = "Save";
+    submitEleent.style.textAlign = "center";
+    submitEleent.style.color = "black";
+    submitEleent.style.fontSize = "16px";
+    submitEleent.type = "submit";
+
+    submitEleent.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        data = getContent();
+        backdrop.remove();
+        divElement.remove();
+        sendEditPost(post_id, data);
+    }
+
+    divElement.appendChild(closeBtn);
+    divElement.appendChild(h4Eelement);
+
+    formElement.append(labelTitle)
+    formElement.append(inputTitle);
+
+    formElement.append(labelContent);
+    formElement.append(inputContent);
+
+    formElement.append(labelFile);
+    formElement.append(fileElemnt)
+
+    formElement.append(submitEleent);
+
+    divElement.append(formElement);
+    document.querySelector("body").append(backdrop);
+    document.querySelector("body").append(divElement);
+
+}
+
+
+function getContent(post_id = "") {
+    let postElement;
+    let title;
+    let content;
+    let image = "";
+    if (post_id) {
+        postElement = document.getElementById(post_id);
+        title = postElement.querySelector(".post-element").textContent;
+        content = postElement.querySelector(".post-content").textContent;
+    } else {
+        formElement = document.getElementById("form-edit");
+        title = document.getElementById("post-title").value;
+        content = document.getElementById("post-content").value;
+        image = fileElemnt.files && fileElemnt.files.length > 0 ? fileElemnt.files[0] : "";
+    }
+
+    return { title: title, content: content, image: image };
+}
+
+function sendEditPost(post_id, data) {
+    const formData = new FormData()
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    formData.append("post_id", post_id);
+    if (data.image){
+        formData.append("image", data.image);
+    }
+
+    fetch("/edit_post", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            updateInfoPost(post_id, data)
+        })
+        .catch(error => console.log(error))
+}
+
+function updateInfoPost(post_id = "", data) {
+    if (post_id) {
+        postEl = document.getElementById(post_id);
+        postEl.querySelector(".post-element").textContent = data.message.title;
+        postEl.querySelector(".post-content").textContent = data.message.content;
+        postEl.querySelector(".img-post").src = data.message.image;
+    }
 }

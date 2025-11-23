@@ -9,16 +9,25 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post, Like, Follow
 
+from django.core.paginator import Paginator
+
 
 def index(request):
-    posts = Post.objects.all().order_by('-time_stamp')
+    all_posts = Post.objects.all().order_by('-time_stamp')
+    paginator = Paginator(all_posts, 10)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
     # get all votes
     for post in posts:
         up_votes = Like.objects.filter(post=post, value="up").count()
         down_votes = Like.objects.filter(post=post, value="down").count()
         post.votes = up_votes - down_votes
+        post.user_post = False
         if request.user.is_authenticated:
             try:
+                # get if poster is of the user
+                post.user_post = (post.user == request.user)
+
                 post.user_vote = Like.objects.get(
                     user=request.user, post=post).value
             except:
@@ -141,12 +150,14 @@ def add_post(request):
 
 # get post_view
 def get_post(request, post_id):
-    print(post_id)
     post = Post.objects.get(id=post_id)
     try:
         post.user_vote = Like.objects.get(user=request.user, post=post).value
     except:
         post.user_vote = None
+
+    if post.user == request.user:
+        post.user_post = True
 
     post.votes = update_like(post_id)
 
@@ -216,7 +227,6 @@ def follow(request, username):
 
     else:
         # get total followers a user has
-        print(username)
         user = User.objects.get(username=username)
         total_followers = Follow.objects.filter(following=user).count()
         return JsonResponse({"status": True,
@@ -234,13 +244,16 @@ def following(request):
             post_followers.extend(Post.objects.filter(user=follower))
 
         post_followers.sort(key=lambda post: post.time_stamp, reverse=True)
-        
+
+        paginator = Paginator(post_followers, 10)
+        page_number = request.GET.get('page')
+        post_followers = paginator.get_page(page_number)
         for post in post_followers:
             up_votes = Like.objects.filter(post=post, value="up").count()
             down_votes = Like.objects.filter(post=post, value="down").count()
-            
+
             post.votes = up_votes - down_votes
-          
+
             if request.user.is_authenticated:
                 try:
                     post.user_vote = Like.objects.get(
@@ -249,10 +262,38 @@ def following(request):
                     post.user_vote = None
             else:
                 post.user_vote = None
-            
+
         return render(request, "network/index.html",
-                {"posts": post_followers
-                })
-        
+                      {"posts": post_followers
+                       })
+
     else:
-        return HttpResponseRedirect(reverse("index"))    
+        return HttpResponseRedirect(reverse("index"))
+
+
+def edit_post(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        print(request.POST)
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        image = request.FILES.get("image")
+        # get post and update
+        post = Post.objects.get(id=request.POST.get("post_id"))
+        if post.user != request.user:
+            return HttpResponseRedirect(reverse("index"))
+
+        # update object
+        post.title = title
+        post.content = content
+        if image:
+            post.image = image
+
+        post.save()
+
+        return JsonResponse({"success": True,
+                             "message":
+                             {"title": title, "content": content,
+                              "image": post.image.url if post.image else ""
+                              }}, status=200)
+
+    return JsonResponse({"success": False, "message": "Invalid request"}, status=400)

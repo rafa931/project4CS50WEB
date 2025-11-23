@@ -23,23 +23,33 @@
 
                 <p class="post-content">{{ post.content }}</p>
 
-                <div class="post-likes">
-                    <button id="up-{{ post.id }}" class="btn-like {% if post.user_vote == 'up' %}active{% endif %}">
-                        <svg class="arrow" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                            <path
-                                d="M10 19a3.966 3.966 0 01-3.96-3.962V10.98H2.838a1.731 1.731 0 01-1.605-1.073 1.734 1.734 0 01.377-1.895L9.364.254a.925.925 0 011.272 0l7.754 7.759c.498.499.646 1.242.376 1.894-.27.652-.9 1.073-1.605 1.073h-3.202v4.058A3.965 3.965 0 019.999 19H10zM2.989 9.179H7.84v5.731c0 1.13.81 2.163 1.934 2.278a2.163 2.163 0 002.386-2.15V9.179h4.851L10 2.163 2.989 9.179z">
-                            </path>
-                        </svg>
-                    </button>
-                    <p class="likes-count" id="likes-{{ post.id }}"> {{ post.votes}}</p>
-                    <button id="down-{{ post.id }}" class="btn-like {% if post.user_vote == 'down' %}active{% endif %}">
-                        <svg class="arrow" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"
-                            style="transform: rotate(180deg);">
-                            <path
-                                d="M10 19a3.966 3.966 0 01-3.96-3.962V10.98H2.838a1.731 1.731 0 01-1.605-1.073 1.734 1.734 0 01.377-1.895L9.364.254a.925.925 0 011.272 0l7.754 7.759c.498.499.646 1.242.376 1.894-.27.652-.9 1.073-1.605 1.073h-3.202v4.058A3.965 3.965 0 019.999 19H10zM2.989 9.179H7.84v5.731c0 1.13.81 2.163 1.934 2.278a2.163 2.163 0 002.386-2.15V9.179h4.851L10 2.163 2.989 9.179z">
-                            </path>
-                        </svg>
-                    </button>
+                <div class="post-container-down">
+                    <div class="post-likes">
+                        <button id="up-{{ post.id }}" class="btn-like {% if post.user_vote == 'up' %}active{% endif %}">
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    d="M10 19a3.966 3.966 0 01-3.96-3.962V10.98H2.838a1.731 1.731 0 01-1.605-1.073 1.734 1.734 0 01.377-1.895L9.364.254a.925.925 0 011.272 0l7.754 7.759c.498.499.646 1.242.376 1.894-.27.652-.9 1.073-1.605 1.073h-3.202v4.058A3.965 3.965 0 019.999 19H10zM2.989 9.179H7.84v5.731c0 1.13.81 2.163 1.934 2.278a2.163 2.163 0 002.386-2.15V9.179h4.851L10 2.163 2.989 9.179z">
+                                </path>
+                            </svg>
+                        </button>
+                        <p class="likes-count" id="likes-{{ post.id }}"> {{ post.votes}}</p>
+                        <button id="down-{{ post.id }}"
+                            class="btn-like {% if post.user_vote == 'down' %}active{% endif %}">
+                            <svg class="arrow" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"
+                                style="transform: rotate(180deg);">
+                                <path
+                                    d="M10 19a3.966 3.966 0 01-3.96-3.962V10.98H2.838a1.731 1.731 0 01-1.605-1.073 1.734 1.734 0 01.377-1.895L9.364.254a.925.925 0 011.272 0l7.754 7.759c.498.499.646 1.242.376 1.894-.27.652-.9 1.073-1.605 1.073h-3.202v4.058A3.965 3.965 0 019.999 19H10zM2.989 9.179H7.84v5.731c0 1.13.81 2.163 1.934 2.278a2.163 2.163 0 002.386-2.15V9.179h4.851L10 2.163 2.989 9.179z">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {% if user.is_authenticated and post.user_post %}
+                    <div>
+                        <button class="edit-btn" id="{{ post.id }}">Edit Post</button>
+                    </div>
+                    {% endif %}
+
                 </div>
             </a>
 
@@ -49,6 +59,28 @@
         <h4>No Posts yet.</h4>
 
         {% endfor %}
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not posts.has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{% if posts.has_previous %}?page={{ posts.previous_page_number }}{% else %}#{% endif %}"
+                        tabindex="-1" {% if not posts.has_previous %}aria-disabled="true" {% endif %}>Previous</a>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link {% if not posts.has_next %}disabled{% endif %}"
+                        href="{% if posts.has_next %}?page={{ posts.next_page_number}} {% else %}#{% endif %}" 
+                        {% if not posts.has_next %}aria-disabled="true"{% endif %}>Next</a>
+                </li>
+            </ul>
+
+        </nav>
+
+        <span class="current" style="margin: auto; text-align: center; width: 100%; display: block;">
+            Page {{ posts.number }} of {{ posts.paginator.num_pages }}.
+        </span>
+
 
     </div>
 
